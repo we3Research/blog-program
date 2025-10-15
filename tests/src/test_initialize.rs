@@ -102,17 +102,19 @@ fn test_update_fentch(){
 
     let cid = "test".to_string();
 
-    let (blog_metadata_addr, _b1) = Pubkey::find_program_address(
+    /*let (blog_metadata_addr, _b1) = Pubkey::find_program_address(
         &[b"blog_metadata", cid.as_bytes(), payer.pubkey().as_ref()],
         &program_id,
-    );
+    );*/
     let (blog_list_addr, _b2) =
         Pubkey::find_program_address(&[b"blog_list", payer.pubkey().as_ref()], &program_id);
 
-
-    println!("blog_metadata_addr: {}, blog_list_addr: {}", blog_metadata_addr, blog_list_addr);
     let result = program.account::<BlogList>(blog_list_addr).unwrap();
-    println!("result: {:?}", result.list);
-    let result = program.account::<BlogMetadata>(blog_metadata_addr).unwrap();
-    println!("result: {:?}", result.history);
+    for blog_metadata_addr in result.list {
+
+        println!("result: {:?}", blog_metadata_addr);
+        let result = program.account::<BlogMetadata>(blog_metadata_addr).unwrap();
+        println!("result: {:?}", result.history);
+    }
+
 }

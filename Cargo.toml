@@ -1,5 +1,5 @@
 [workspace]
-members = ["programs/*", "/clients/blog-frontend", "tests"]
+members = ["programs/*", "frontend/*", "tests"]
 resolver = "2"
 
 [profile.release]

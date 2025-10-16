@@ -1,3 +1,0 @@
-[submodule "clients/blog-frontend"]
-	path = clients/blog-frontend
-	url = https://github.com/we3Research/blog-frontend.git

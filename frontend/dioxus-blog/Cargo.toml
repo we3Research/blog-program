@@ -1,0 +1,19 @@
+[package]
+name = "dioxus-blog"
+version = "0.1.0"
+authors = ["Nevermore <010gy@xiangling.com>"]
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+dioxus = { version = "0.7.0-rc.1", features = ["router"] }
+web3-blog-program = { version = "0.1.0", path = "/programs/web3-blog-program" }
+wasm_client_solana = { version = "0.9.0" }
+anchor-lang = "0.32.1"
+
+[features]
+default = ["web"]
+web = ["dioxus/web"]
+desktop = ["dioxus/desktop"]
+mobile = ["dioxus/mobile"]

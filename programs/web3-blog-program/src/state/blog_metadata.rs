@@ -9,7 +9,7 @@ pub struct BlogMetadata {
     #[max_len(50)]
     pub author: String,
     #[max_len(50)]
-    pub content: String,
+    pub cid: String,
     pub create_at: i64,
     pub update_at: i64,
     #[max_len(50,100)]

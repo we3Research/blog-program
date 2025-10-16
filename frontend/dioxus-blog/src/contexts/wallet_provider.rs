@@ -1,8 +1,8 @@
 use crate::*;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy)]
 pub struct WalletContext {
-    pub wallet: Option<wallet_adapter::Wallet>,
+    pub wallet: Signal<Option<wallet_adapter::Wallet>>,
 }
 
 impl WalletContext {
@@ -11,14 +11,15 @@ impl WalletContext {
         let wallet = adapter.get_wallet(&wallet_name);
         match wallet {
             Ok(wallet) => {
-                info!("Connected wallet: {}", &wallet.name().to_string());
-                self.wallet = Some(wallet);
+                info!("Success Connected wallet: {}", &wallet.name().to_string());
+                info!(" {}", &wallet.icon().as_ref().unwrap().to_string());
+                self.wallet.set(Some(wallet));
                 Ok(())
             }
             Err(err) => Err(dioxus::Error::msg(format!(
-                "Wallet not found: {} , reason",
+                "Wallet not found: {} , reason, {}",
                 wallet_name,
-                // format!("{}", err)
+                err.to_string()
             ))),
         }
     }
@@ -26,6 +27,8 @@ impl WalletContext {
 
 #[component]
 pub fn WalletProvider(children: Element) -> Element {
-    use_context_provider::<WalletContext>(|| WalletContext { wallet: None });
+    use_context_provider::<WalletContext>(|| WalletContext {
+        wallet: Signal::new(None),
+    });
     children
 }

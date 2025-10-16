@@ -33,7 +33,10 @@ fn App() -> Element {
         document::Link { rel: "icon", href: FAVICON }
         document::Link { rel: "stylesheet", href: TAILWIND_CSS }
         RpcProvider {
-            WalletProvider { Router::<Route> {} }
+            WalletProvider {
+                Header {}
+                Router::<Route> {}
+            }
         }
     }
 }

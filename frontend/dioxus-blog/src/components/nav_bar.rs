@@ -12,12 +12,10 @@ pub fn Navbar() -> Element {
 
     rsx! {
         div {
-            Header {}
             div { class: "flex flex-col md:flex-row w-full min-h-screen",
                 // 左侧导航栏
                 div { class: "w-full md:w-64 bg-base-200 p-4 flex-shrink-0",
                     div { class: "mb-8",
-                        h1 { class: "text-2xl font-bold mb-4 text-primary", "Web3 Blog" }
                         Link {
                             class: "link link-hover block py-2",
                             to: Route::Home {},

@@ -1,32 +1,21 @@
 [application]
-name = "dioxus-blog"
-default_platform = "web"
-out_dir = "dist"
-asset_dir = "assets"
 
 [web.app]
-title = "dioxus-blog"
-base_path = "dioxus-blog"
 
-[web.watcher]
-watch_path = ["src", "assets"]
-reload_html = true
+# HTML title tag content
+title = "Dioxus Web3 Blog"
 
+# include `assets` in web platform
 [web.resource]
-style = ["tailwind.css"]
+
+# Additional CSS style files
+style = []
+
+# Additional JavaScript files
+script = []
 
 [web.resource.dev]
-style = ["tailwind.css"]
 
-[web.tailwind]
-input = "tailwind.css"
-config = "tailwind.config.js"
-
-[bundle]
-identifier = "com.dioxus-blog.app"
-publisher = "dioxus-blog"
-icon = ["assets/icon.png"]
-resources = ["assets/*"]
-copyright = "Copyright (c) 2025 dioxus-blog"
-category = "Developer Tool"
-short_description = "A web3 blog application built with Dioxus"
+# Javascript code file
+# serve: [dev-server] only
+script = []

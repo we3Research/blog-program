@@ -11,46 +11,49 @@ pub fn Navbar() -> Element {
     let res = &*blog_list.read();
 
     rsx! {
-        div { class: "flex flex-col md:flex-row w-full min-h-screen",
-            // 左侧导航栏
-            div { class: "w-full md:w-64 bg-base-200 p-4 flex-shrink-0",
-                div { class: "mb-8",
-                    h1 { class: "text-2xl font-bold mb-4 text-primary", "Web3 Blog" }
-                    Link {
-                        class: "link link-hover block py-2",
-                        to: Route::Home {},
-                        "Home"
-                    }
-                }
-
-                div { class: "divider", "Blogs" }
-
-                div { class: "space-y-2",
-                    if let Some(Ok(blog_list_data)) = res {
-                        {
-                            blog_list_data
-                                .list
-                                .iter()
-                                .map(|blog| {
-                                    rsx! {
-                                        Link {
-                                            class: "link link-hover block py-2 truncate",
-                                            to: Route::Blog {
-                                                id: blog.to_owned().to_string(),
-                                            },
-                                            "{blog.to_string()}"
-                                        }
-                                    }
-                                })
+        div {
+            Header {}
+            div { class: "flex flex-col md:flex-row w-full min-h-screen",
+                // 左侧导航栏
+                div { class: "w-full md:w-64 bg-base-200 p-4 flex-shrink-0",
+                    div { class: "mb-8",
+                        h1 { class: "text-2xl font-bold mb-4 text-primary", "Web3 Blog" }
+                        Link {
+                            class: "link link-hover block py-2",
+                            to: Route::Home {},
+                            "Home"
                         }
-                    } else {
-                        div { class: "text-sm opacity-50", "Loading blogs..." }
+                    }
+
+                    div { class: "divider", "Blogs" }
+
+                    div { class: "space-y-2",
+                        if let Some(Ok(blog_list_data)) = res {
+                            {
+                                blog_list_data
+                                    .list
+                                    .iter()
+                                    .map(|blog| {
+                                        rsx! {
+                                            Link {
+                                                class: "link link-hover block py-2 truncate",
+                                                to: Route::Blog {
+                                                    id: blog.to_owned().to_string(),
+                                                },
+                                                "{blog.to_string()}"
+                                            }
+                                        }
+                                    })
+                            }
+                        } else {
+                            div { class: "text-sm opacity-50", "Loading blogs..." }
+                        }
                     }
                 }
-            }
 
-            // 右侧内容区域
-            div { class: "flex-1 bg-base-100 p-4 md:p-8", Outlet::<Route> {} }
+                // 右侧内容区域
+                div { class: "flex-1 bg-base-100 p-4 md:p-8", Outlet::<Route> {} }
+            }
         }
     }
 }

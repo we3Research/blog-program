@@ -1,15 +1,14 @@
-use dioxus::prelude::*;
 use anchor_lang::prelude::*;
+use dioxus::prelude::*;
 
 mod apis;
+mod components;
 mod contexts;
 mod pages;
-mod components;
 
-use pages::*;
-use contexts::*;
 use components::*;
-
+use contexts::*;
+use pages::*;
 
 #[derive(Debug, Clone, Routable, PartialEq)]
 #[rustfmt::skip]
@@ -33,8 +32,8 @@ fn App() -> Element {
     rsx! {
         document::Link { rel: "icon", href: FAVICON }
         document::Link { rel: "stylesheet", href: TAILWIND_CSS }
-        div { class: "min-h-screen bg-base-100 text-base-content",
-            RpcProvider { Router::<Route> {} }
+        RpcProvider {
+            WalletProvider { Router::<Route> {} }
         }
     }
 }

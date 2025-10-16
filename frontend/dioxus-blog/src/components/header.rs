@@ -6,7 +6,7 @@ pub fn Header() -> Element {
     let wallet_connected = wallet_context.wallet.read().is_some();
 
     rsx! {
-        div { class: "navbar bg-base-100 shadow-lg px-6 py-4",
+        div { class: "navbar bg-base-100 shadow-lg px-6 py-2 sticky top-0 z-50",
             div { class: "flex-1",
                 h1 { class: "text-2xl font-bold text-primary", "Web3 Blog" }
             }

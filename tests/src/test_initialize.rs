@@ -1,11 +1,15 @@
+use std::cmp::min;
 use std::str::FromStr;
 
 use anchor_client::solana_sdk::signer::Signer;
-use anchor_client::{solana_sdk::{
-    commitment_config::CommitmentConfig, pubkey::Pubkey, signature::read_keypair_file,
-}, Client, Cluster};
-use web3_blog_program::BlogMetadata;
+use anchor_client::{
+    solana_sdk::{
+        commitment_config::CommitmentConfig, pubkey::Pubkey, signature::read_keypair_file,
+    },
+    Client, Cluster,
+};
 pub use web3_blog_program::state::blog_list::BlogList;
+use web3_blog_program::BlogMetadata;
 
 #[test]
 fn test_create_blog() {
@@ -25,7 +29,10 @@ fn test_create_blog() {
     );
     let (blog_list_addr, _b2) =
         Pubkey::find_program_address(&[b"blog_list", payer.pubkey().as_ref()], &program_id);
-    println!("blog_metadata_addr: {}, blog_list_addr: {}", blog_metadata_addr, blog_list_addr);
+    println!(
+        "blog_metadata_addr: {}, blog_list_addr: {}",
+        blog_metadata_addr, blog_list_addr
+    );
     let tx = program
         .request()
         .accounts(web3_blog_program::accounts::CreateBlog {
@@ -47,9 +54,8 @@ fn test_create_blog() {
     println!("Your transaction signature {}", tx);
 }
 
-
 #[test]
-fn test_update_blog(){
+fn test_update_blog() {
     let program_id = "D1qcfn5Eevy8LCoAb3vrCTrDzNzDYqi7spG3ja3BgFJg";
     let anchor_wallet = "/home/llf/.config/solana/id.json";
     let payer = read_keypair_file(&anchor_wallet).unwrap();
@@ -67,8 +73,10 @@ fn test_update_blog(){
     let (blog_list_addr, _b2) =
         Pubkey::find_program_address(&[b"blog_list", payer.pubkey().as_ref()], &program_id);
 
-
-    println!("blog_metadata_addr: {}, blog_list_addr: {}", blog_metadata_addr, blog_list_addr);
+    println!(
+        "blog_metadata_addr: {}, blog_list_addr: {}",
+        blog_metadata_addr, blog_list_addr
+    );
     let tx = program
         .request()
         .accounts(web3_blog_program::accounts::UpdateBlog {
@@ -78,7 +86,7 @@ fn test_update_blog(){
             //system_program: solana_system_interface::program::ID,
         })
         .args(web3_blog_program::instruction::UpdateBlog {
-            new_content: "test121".to_string(),
+            new_content: "Qmbejuo7kNThaeRMjLQc3whFKnp6c4N43m1XtPH4fKkRMt".to_string(),
         })
         //.payer(&payer)
         .signer(&payer)
@@ -88,10 +96,8 @@ fn test_update_blog(){
     println!("Your transaction signature {}", tx);
 }
 
-
-
 #[test]
-fn test_update_fentch(){
+fn test_update_fentch() {
     let program_id = "D1qcfn5Eevy8LCoAb3vrCTrDzNzDYqi7spG3ja3BgFJg";
     let anchor_wallet = "/home/llf/.config/solana/id.json";
     let payer = read_keypair_file(&anchor_wallet).unwrap();
@@ -108,13 +114,32 @@ fn test_update_fentch(){
     );*/
     let (blog_list_addr, _b2) =
         Pubkey::find_program_address(&[b"blog_list", payer.pubkey().as_ref()], &program_id);
-
+    println!("result: {:?}",blog_list_addr);
     let result = program.account::<BlogList>(blog_list_addr).unwrap();
-    for blog_metadata_addr in result.list {
 
+    for blog_metadata_addr in result.list {
         println!("result: {:?}", blog_metadata_addr);
         let result = program.account::<BlogMetadata>(blog_metadata_addr).unwrap();
         println!("result: {:?}", result.history);
     }
-
 }
+
+/*type Solution;
+
+impl Solution {
+    pub fn find_smallest_integer(nums: Vec<i32>, value: i32) -> i32 {
+        let mut m = std::collections::HashMap::with_capacity(min(nums.len(), value as usize));
+        for x in nums {
+            m.entry(((x % value) + value) % value)
+                .and_modify(|y| *y += 1)
+                .or_insert(1);
+        }
+        let mut res = 0;
+        while m.entry(res % value). {
+            res += 1;
+            m.entry(res % value).and_modify(|y| *y -= 1);
+        }
+
+        res
+    }
+}*/

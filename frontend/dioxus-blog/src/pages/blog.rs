@@ -1,3 +1,5 @@
+use std::str::FromStr;
+
 use crate::*;
 use components::BlogContent;
 use wasm_client_solana::SolanaRpcClient;
@@ -84,10 +86,17 @@ pub fn Blog(id: String) -> Element {
 async fn get_blog_metadata(id: String) -> dioxus::Result<BlogMetadata, dioxus::Error> {
     let client = use_context::<SolanaRpcClient>();
 
-    let blog_metadata_address = Pubkey::from_str_const(&id);
-    let data = client.get_account_data(&blog_metadata_address).await?;
+    let blog_metadata_address = Pubkey::from_str(&id);
+    if blog_metadata_address.is_err() {
+        return Err(dioxus::Error::msg("Invalid blog_metadata address"));
+    }
+    let data = client.get_account_data(&blog_metadata_address.unwrap()).await;
 
-    let blog_metadata = BlogMetadata::try_deserialize(&mut data.as_slice())?;
-
-    Ok(blog_metadata)
+    match data {
+        Ok(data) => {
+            let blog_metadata = BlogMetadata::try_deserialize(&mut data.as_slice())?;
+            Ok(blog_metadata)
+        }
+        Err(_) => Err(dioxus::Error::msg("Failed to get blog_metadata")),
+    }
 }

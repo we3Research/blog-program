@@ -21,7 +21,7 @@ fn test_create_blog() {
     let program_id = Pubkey::from_str(program_id).unwrap();
     let program = client.program(program_id).unwrap();
 
-    let cid = "test".to_string();
+    let cid = "happy".to_string();
 
     let (blog_metadata_addr, _b1) = Pubkey::find_program_address(
         &[b"blog_metadata", cid.as_bytes(), payer.pubkey().as_ref()],

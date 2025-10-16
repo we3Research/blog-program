@@ -3,7 +3,7 @@ use crate::state::blog_metadata::BlogMetadata;
 use anchor_lang::prelude::*;
 
 #[derive(Accounts)]
-#[instruction(cid: String)]
+#[instruction(title: String,author: String,cid: String)]
 pub struct CreateBlog<'info> {
     #[account(
         init,

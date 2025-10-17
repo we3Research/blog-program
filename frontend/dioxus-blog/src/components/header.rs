@@ -1,4 +1,4 @@
-use crate::*;
+use crate::{apis::foo, *};
 
 #[component]
 pub fn Header() -> Element {
@@ -42,6 +42,13 @@ fn WalletInfo() -> Element {
                         img { class: "w-8 h-8", src: icon.as_ref().to_string() }
                     }
                     p { class: "text-xs", {wallet.name()} }
+                    button {
+                        class: "btn btn-sm btn-secondary",
+                        onclick: move |_| async move {
+                            foo().await;
+                        },
+                        "test button"
+                    }
                 }
             } else {
                 p { class: "text-sm italic text-gray-500", "Wallet not connected" }

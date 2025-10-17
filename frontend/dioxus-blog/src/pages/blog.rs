@@ -7,9 +7,15 @@ use web3_blog_program::BlogMetadata;
 
 #[component]
 pub fn Blog(id: String) -> Element {
-    let id = use_signal(|| id);
+    
+    let mut signal_id = use_signal(|| id.clone());
+
+    if id != *signal_id.peek() {
+        signal_id.set(id);
+    }
+
     let blog_metadata =
-        use_resource(move || async move { get_blog_metadata(id.read().to_string()).await });
+        use_resource(move || async move { get_blog_metadata(signal_id.read().to_string()).await });
 
     let res = &*blog_metadata.read();
 
@@ -90,7 +96,9 @@ async fn get_blog_metadata(id: String) -> dioxus::Result<BlogMetadata, dioxus::E
     if blog_metadata_address.is_err() {
         return Err(dioxus::Error::msg("Invalid blog_metadata address"));
     }
-    let data = client.get_account_data(&blog_metadata_address.unwrap()).await;
+    let data = client
+        .get_account_data(&blog_metadata_address.unwrap())
+        .await;
 
     match data {
         Ok(data) => {

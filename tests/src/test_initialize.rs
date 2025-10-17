@@ -1,4 +1,3 @@
-use std::cmp::min;
 use std::str::FromStr;
 
 use anchor_client::solana_sdk::signer::Signer;
@@ -8,13 +7,192 @@ use anchor_client::{
     },
     Client, Cluster,
 };
-pub use web3_blog_program::state::blog_list::BlogList;
-use web3_blog_program::BlogMetadata;
+use web3_blog_program::*;
+
+const PROGRAM_ID: &str = "AGRJdaV5t2rKK7nTYFQiRztu8tKkKgoXMprTECZrLc7A";
+const ANCHOR_WALLET: &str = "/home/llf/.config/solana/id.json";
 
 #[test]
+fn test_init() {
+    let program_id = PROGRAM_ID;
+    let anchor_wallet = ANCHOR_WALLET;
+    let payer = read_keypair_file(&anchor_wallet).unwrap();
+
+    let client = Client::new_with_options(Cluster::Devnet, &payer, CommitmentConfig::confirmed());
+    let program_id = Pubkey::from_str(program_id).unwrap();
+    let program = client.program(program_id).unwrap();
+    let (author_list_pubkey, _b) = Pubkey::find_program_address(&[b"author_list"], &program_id);
+    println!("author_list_pubkey: {}", author_list_pubkey);
+
+    let sig = program
+        .request()
+        .accounts(accounts::Init {
+            author_list: author_list_pubkey,
+            signer: payer.pubkey(),
+            system_program: solana_system_interface::program::ID,
+        })
+        .args(instruction::Init {})
+        .signer(&payer)
+        //.payer(&payer)
+        .send()
+        .expect("");
+
+    println!("Your transaction signature {}", sig);
+
+    let author_list = program.account::<AuthorList>(author_list_pubkey).unwrap();
+
+    println!("author_list: {:?}", author_list)
+}
+
+#[test]
+fn test_add_author() {
+    let program_id = PROGRAM_ID;
+    let anchor_wallet = ANCHOR_WALLET;
+    let payer = read_keypair_file(&anchor_wallet).unwrap();
+
+    let client = Client::new_with_options(Cluster::Devnet, &payer, CommitmentConfig::confirmed());
+    let program_id = Pubkey::from_str(program_id).unwrap();
+    let program = client.program(program_id).unwrap();
+
+    let (author_list_pubkey, _b) = Pubkey::find_program_address(&[b"author_list"], &program_id);
+    println!("author_list_pubkey: {}", author_list_pubkey);
+
+    let uid: i64 = 1;
+    let (author_pubkey, _b) =
+        Pubkey::find_program_address(&[b"author", uid.to_be_bytes().as_ref()], &program_id);
+    println!("author_pubkey: {}", author_list_pubkey);
+
+    let sig = program
+        .request()
+        .accounts(accounts::AddAuthor {
+            author: author_pubkey,
+            author_list: author_list_pubkey,
+            signer: payer.pubkey(),
+            system_program: solana_system_interface::program::ID,
+        })
+        .args(instruction::AddAuthor {
+            uid,
+            pseudonym: "Solitary Beluga".to_string(),
+            introduction: "一只平平无奇的鲸鱼".to_string(),
+            updater: payer.pubkey(),
+        })
+        .signer(&payer)
+        //.payer(&payer)
+        .send()
+        .expect("");
+
+    println!("Your transaction signature {}", sig);
+
+    let author_list = program.account::<AuthorList>(author_list_pubkey).unwrap();
+
+    println!("author_list: {:?}", author_list);
+
+    let author = program.account::<Author>(author_pubkey).unwrap();
+
+    println!("author_list: {:?}", author)
+}
+
+#[test]
+fn test_add_blog() {
+    let program_id = PROGRAM_ID;
+    let anchor_wallet = ANCHOR_WALLET;
+    let payer = read_keypair_file(&anchor_wallet).unwrap();
+
+    let client = Client::new_with_options(Cluster::Devnet, &payer, CommitmentConfig::confirmed());
+    let program_id = Pubkey::from_str(program_id).unwrap();
+    let program = client.program(program_id).unwrap();
+
+    /*let (author_list_pubkey, _b) = Pubkey::find_program_address(&[b"author_list"], &program_id);
+    println!("author_list_pubkey: {}", author_list_pubkey);*/
+
+    let uid: i64 = 1;
+    let (author_pubkey, _b) =
+        Pubkey::find_program_address(&[b"author", uid.to_be_bytes().as_ref()], &program_id);
+    println!("author_pubkey: {}", author_pubkey);
+
+    let index: i64 = 1;
+    let (blog_metadata_pubkey, _b1) = Pubkey::find_program_address(
+        &[
+            b"blog",
+            author_pubkey.as_ref(),
+            index.to_be_bytes().as_ref(),
+        ],
+        &program_id,
+    );
+
+    let sig = program
+        .request()
+        .accounts(accounts::CreateBlog {
+            blog_metadata: blog_metadata_pubkey,
+            author: author_pubkey,
+            signer: payer.pubkey(),
+            system_program: solana_system_interface::program::ID,
+        })
+        .args(instruction::CreateBlog {
+            index,
+            title: "Web3 博客".to_string(),
+            cid: "QmPgBseimNtHiFufHh213jkVNMew9wMsEiGZWXzs6KLkJb".to_string(),
+        })
+        .signer(&payer)
+        //.payer(&payer)
+        .send()
+        .expect("");
+
+    println!("Your transaction signature {}", sig);
+
+    /*let author_list = program.account::<AuthorList>(author_list_pubkey).unwrap();
+
+    println!("author_list: {:?}", author_list);*/
+
+    let author = program.account::<Author>(author_pubkey).unwrap();
+
+    println!("author_list: {:?}", author);
+
+
+    let blog_metadata = program.account::<BlogMetadata>(blog_metadata_pubkey).unwrap();
+
+    println!("author_list: {:?}", blog_metadata);
+}
+
+#[test]
+fn test_fetch() {
+    let program_id = PROGRAM_ID;
+    let anchor_wallet = ANCHOR_WALLET;
+    let payer = read_keypair_file(&anchor_wallet).unwrap();
+
+    let client = Client::new_with_options(Cluster::Devnet, &payer, CommitmentConfig::confirmed());
+    let program_id = Pubkey::from_str(program_id).unwrap();
+    let program = client.program(program_id).unwrap();
+    let (author_list_pubkey, _b) = Pubkey::find_program_address(&[b"author_list"], &program_id);
+
+    let author_list = program.account::<AuthorList>(author_list_pubkey).unwrap();
+    println!("author_list: {:?}", author_list);
+
+    let uid: i64 = 1;
+    let (author_pubkey, _b) =
+        Pubkey::find_program_address(&[b"author", uid.to_be_bytes().as_ref()], &program_id);
+    println!("author_pubkey: {}", author_list_pubkey);
+
+    let author = program.account::<Author>(author_pubkey).unwrap();
+
+    println!("author_list: {:?}", author);
+
+    let index: i64 = 1;
+    let (blog_metadata_pubkey, _b1) = Pubkey::find_program_address(
+        &[
+            b"blog",
+            author_pubkey.as_ref(),
+            index.to_be_bytes().as_ref(),
+        ],
+        &program_id,
+    );
+    let blog_metadata = program.account::<BlogMetadata>(blog_metadata_pubkey).unwrap();
+    println!("author_list: {:?}", blog_metadata);
+}
+/*#[test]
 fn test_create_blog() {
-    let program_id = "D1qcfn5Eevy8LCoAb3vrCTrDzNzDYqi7spG3ja3BgFJg";
-    let anchor_wallet = "/home/llf/.config/solana/id.json";
+    let program_id = PROGRAM_ID;
+    let anchor_wallet = ANCHOR_WALLET;
     let payer = read_keypair_file(&anchor_wallet).unwrap();
 
     let client = Client::new_with_options(Cluster::Devnet, &payer, CommitmentConfig::confirmed());
@@ -46,7 +224,7 @@ fn test_create_blog() {
             author: cid.to_string(),
             cid,
         })
-        //.payer(&payer)
+        .payer(&payer)
         .signer(&payer)
         .send()
         .expect("");
@@ -114,7 +292,7 @@ fn test_update_fentch() {
     );*/
     let (blog_list_addr, _b2) =
         Pubkey::find_program_address(&[b"blog_list", payer.pubkey().as_ref()], &program_id);
-    println!("result: {:?}",blog_list_addr);
+    println!("result: {:?}", blog_list_addr);
     let result = program.account::<BlogList>(blog_list_addr).unwrap();
 
     for blog_metadata_addr in result.list {
@@ -122,7 +300,7 @@ fn test_update_fentch() {
         let result = program.account::<BlogMetadata>(blog_metadata_addr).unwrap();
         println!("result: {:?}", result.history);
     }
-}
+}*/
 
 /*type Solution;
 

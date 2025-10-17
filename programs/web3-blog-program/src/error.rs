@@ -6,4 +6,8 @@ pub enum BlogError {
     Unauthorized,
     #[msg("Blog not found.")]
     NotFound,
+    #[msg("Author List not init blog.")]
+    AuthorListNotInit,
+    #[msg("Index Wrong.")]
+    IndexWrong,
 }

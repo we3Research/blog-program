@@ -1,33 +1,27 @@
-use crate::state::blog_list::BlogList;
+use crate::error::BlogError;
+use crate::state::author::Author;
 use crate::state::blog_metadata::BlogMetadata;
 use anchor_lang::prelude::*;
 
+const SEED:&[u8] = b"blog";
+
 #[derive(Accounts)]
-#[instruction(title: String,author: String,cid: String)]
+#[instruction(index: i64)]
 pub struct CreateBlog<'info> {
     #[account(
         init,
         payer = signer,
-        space = BlogMetadata::INIT_SPACE,
+        space = 8+BlogMetadata::INIT_SPACE,
         seeds = [
-            b"blog_metadata",
-            cid.as_bytes(),
-            signer.key().as_ref(),
+            SEED,
+            author.key().as_ref(),
+            index.to_be_bytes().as_ref(),
          ],
         bump,
     )]
     pub blog_metadata: Account<'info, BlogMetadata>,
-    #[account(
-        init_if_needed,
-        payer = signer,
-        space = BlogList::INIT_SPACE,
-        seeds = [
-            b"blog_list",
-            signer.key().as_ref(),
-         ],
-        bump,
-    )]
-    pub blog_list: Account<'info, BlogList>,
+    #[account(mut)]
+    pub author: Account<'info, Author>,
     #[account(mut)]
     pub signer: Signer<'info>,
     pub system_program: Program<'info, System>,
@@ -35,30 +29,34 @@ pub struct CreateBlog<'info> {
 
 pub fn create_blog(
     ctx: Context<CreateBlog>,
+    index: i64,
+    //author: Pubkey,
     title: String,
-    author: String,
     cid: String,
 ) -> Result<()> {
-    let blog_list = &mut ctx.accounts.blog_list;
-    let blog_metadata = &mut ctx.accounts.blog_metadata;
+    let author_account = &mut ctx.accounts.author;
     let signer = &ctx.accounts.signer;
 
-    if !blog_list.is_initialized {
-        blog_list.list = Vec::new();
-        blog_list.is_initialized = true;
-    }
+    require!(
+        author_account.updater == signer.key(),
+        BlogError::Unauthorized
+    );
+    author_account.total += 1;
 
-    blog_list.list.push(blog_metadata.key()); // Add the new blog's pubkey to the list
+    require!(author_account.total == index, BlogError::IndexWrong);
 
+    let blog_metadata = &mut ctx.accounts.blog_metadata;
+
+    let ns = Clock::get()?.unix_timestamp;
     // 存储博客元数据
-    blog_metadata.title = title;
-    blog_metadata.author = author.clone();
-    blog_metadata.history = vec![cid.clone()]; // Store initial content in history
-    blog_metadata.cid = cid;
-    blog_metadata.create_at = Clock::get()?.unix_timestamp;
-    blog_metadata.update_at = blog_metadata.create_at;
-    blog_metadata.owner = signer.key(); // Save the creator's public key
-
-    msg!("Created blog: {}", blog_metadata.title);
+    blog_metadata.set_inner(BlogMetadata {
+        index,
+        title,
+        cid: cid.clone(),
+        create_at: ns,
+        update_at: ns,
+        history: vec![cid.clone()],
+        author: author_account.key(),
+    });
     Ok(())
 }

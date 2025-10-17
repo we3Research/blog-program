@@ -5,8 +5,8 @@ package_manager = "yarn"
 resolution = true
 skip-lint = false
 
-[programs.localnet]
-web3_blog_program = "D1qcfn5Eevy8LCoAb3vrCTrDzNzDYqi7spG3ja3BgFJg"
+[programs.devnet]
+web3_blog_program = "AGRJdaV5t2rKK7nTYFQiRztu8tKkKgoXMprTECZrLc7A"
 
 [registry]
 url = "https://api.apr.dev"

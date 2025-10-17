@@ -1284,6 +1284,12 @@
       --btn-fg: var(--color-primary-content);
     }
   }
+  .btn-secondary {
+    @layer daisyui.modifier {
+      --btn-color: var(--color-secondary);
+      --btn-fg: var(--color-secondary-content);
+    }
+  }
   .md\:w-64 {
     @media (width >= 48rem) {
       width: calc(var(--spacing) * 64);

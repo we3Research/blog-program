@@ -3,7 +3,7 @@ use wasm_client_solana::SolanaRpcClient;
 use web3_blog_program::BlogList;
 
 use crate::*;
-const BLOG_LIST: &'static str = "2oAs4aTanvsB4y755fF5QWU2DdqSx9JhWa5JDSYnitbH";
+pub const BLOG_LIST: &'static str = "2oAs4aTanvsB4y755fF5QWU2DdqSx9JhWa5JDSYnitbH";
 
 #[component]
 pub fn Navbar() -> Element {

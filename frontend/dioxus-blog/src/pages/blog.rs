@@ -7,22 +7,22 @@ use web3_blog_program::BlogMetadata;
 
 #[component]
 pub fn Blog(id: String) -> Element {
-    
     let mut signal_id = use_signal(|| id.clone());
 
-    if id != *signal_id.peek() {
+    if id != signal_id.peek().to_string() {
         signal_id.set(id);
     }
 
-    let blog_metadata =
-        use_resource(move || async move { get_blog_metadata(signal_id.read().to_string()).await });
-
-    let res = &*blog_metadata.read();
+    let blog_metadata = use_resource(move || async move {
+        get_blog_metadata(signal_id.cloned().as_str())
+            .await
+            .unwrap()
+    });
 
     rsx! {
         div { class: "max-w-4xl mx-auto",
-            match res {
-                Some(Ok(blog_metadata)) => {
+            match &*blog_metadata.read() {
+                Some(blog_metadata) => {
                     rsx! {
                         div { class: "card bg-base-200 shadow-xl p-6 mb-6",
                             h1 { class: "text-3xl font-bold mb-2", "{blog_metadata.title}" }
@@ -69,14 +69,6 @@ pub fn Blog(id: String) -> Element {
                         }
                     }
                 }
-                Some(Err(_)) => {
-                    rsx! {
-                        div { class: "alert alert-error shadow-lg",
-                            h2 { class: "text-xl font-bold", "Error" }
-                            p { "Failed to load blog metadata" }
-                        }
-                    }
-                }
                 None => {
                     rsx! {
                         div { class: "flex justify-center items-center h-64",
@@ -89,10 +81,10 @@ pub fn Blog(id: String) -> Element {
     }
 }
 
-async fn get_blog_metadata(id: String) -> dioxus::Result<BlogMetadata, dioxus::Error> {
+async fn get_blog_metadata(id: &str) -> dioxus::Result<BlogMetadata, dioxus::Error> {
     let client = use_context::<SolanaRpcClient>();
 
-    let blog_metadata_address = Pubkey::from_str(&id);
+    let blog_metadata_address = Pubkey::from_str(id);
     if blog_metadata_address.is_err() {
         return Err(dioxus::Error::msg("Invalid blog_metadata address"));
     }

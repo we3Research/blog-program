@@ -1,5 +1,7 @@
+use std::rc::Rc;
+
 use anchor_lang::prelude::*;
-use dioxus::prelude::*;
+use dioxus::{prelude::*, web::HashHistory};
 
 mod apis;
 mod components;
@@ -24,7 +26,9 @@ const FAVICON: Asset = asset!("/assets/favicon.ico");
 const TAILWIND_CSS: Asset = asset!("/assets/tailwind.css");
 
 fn main() {
-    dioxus::launch(App);
+    dioxus::LaunchBuilder::new()
+        .with_cfg(dioxus::web::Config::new().history(Rc::new(HashHistory::new(true))))
+        .launch(App);
 }
 
 #[component]

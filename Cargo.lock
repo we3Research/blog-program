@@ -1744,6 +1744,7 @@ dependencies = [
  "bincode",
  "dayjs",
  "dioxus",
+ "partial-idl-parser",
  "reqwasm",
  "serde",
  "solana-sdk 3.0.0",
@@ -4729,6 +4730,16 @@ dependencies = [
  "redox_syscall",
  "smallvec",
  "windows-link 0.2.1",
+]
+
+[[package]]
+name = "partial-idl-parser"
+version = "1.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d7f3f2d90d8a97e0a01b1a49d6bdf04b5e9c32e00c0a3b6b50d404bd2f6e8908"
+dependencies = [
+ "serde",
+ "serde_json",
 ]
 
 [[package]]

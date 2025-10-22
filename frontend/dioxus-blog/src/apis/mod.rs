@@ -1,20 +1,12 @@
 use std::str::FromStr;
 
-use serde::{Deserialize, Serialize};
-use solana_sdk::{native_token::LAMPORTS_PER_SOL, pubkey::Pubkey};
+// use solana_sdk::message::AccountMeta;
 use wallet_adapter::SendOptions;
-use wasm_client_solana::SolanaRpcClient;
+use wasm_client_solana::{SolanaRpcClient, VersionedTransactionExtension};
 
 use crate::*;
 
 pub const BASE_URL: &str = "http://120.26.192.103:8088";
-
-#[derive(serde::Serialize, serde::Deserialize)]
-pub struct CreateBlog {
-    pub title: String,
-    pub author: String,
-    pub cid: String,
-}
 
 pub async fn foo() -> dioxus::Result<(), dioxus::Error> {
     let rpc_client = use_context::<SolanaRpcClient>();
@@ -22,46 +14,76 @@ pub async fn foo() -> dioxus::Result<(), dioxus::Error> {
     let wallet = &*wallet_context.wallet.read();
 
     if let Some(wallet) = wallet {
+        // create_blog 的 discriminator
+        const CREATE_BLOG_DISCRIMINATOR: [u8; 8] = [221, 118, 241, 5, 53, 181, 90, 253];
+        // update_blog 的 discriminator
+        const UPDATE_BLOG_DISCRIMINATOR: [u8; 8] = [252, 54, 5, 181, 182, 6, 112, 203];
+
         let wallet_account = wallet.connect().await?;
 
-        let program_id = "D1qcfn5Eevy8LCoAb3vrCTrDzNzDYqi7spG3ja3BgFJg";
-        let program_id = Pubkey::from_str(program_id).unwrap();
-        info!("wallet_account: {:?}", wallet_account);
-        let public_key = wallet_account.public_key();
+        let payer_pubkey = wallet_account.public_key();
+        let payer = solana_sdk::pubkey::Pubkey::new_from_array(payer_pubkey);
 
-        let payer = Pubkey::new_from_array(public_key);
+        let program_id = solana_sdk::pubkey::Pubkey::from_str_const(
+            "D1qcfn5Eevy8LCoAb3vrCTrDzNzDYqi7spG3ja3BgFJg",
+        );
 
         let cid = "Qmbejuo7kNThaeRMjLQc3wh".to_string();
 
-        let (blog_metadata_addr, _b1) = Pubkey::find_program_address(
-            &[b"blog_metadata", cid.as_bytes(), public_key.as_ref()],
+        let (blog_metadata_addr, _b1) = solana_sdk::pubkey::Pubkey::find_program_address(
+            &[b"blog_metadata", cid.as_bytes(), payer_pubkey.as_ref()],
             &program_id,
         );
-        let (blog_list_addr, _b2) =
-            Pubkey::find_program_address(&[b"blog_list", public_key.as_ref()], &program_id);
+        let (blog_list_addr, _b2) = solana_sdk::pubkey::Pubkey::find_program_address(
+            &[b"blog_list", payer_pubkey.as_ref()],
+            &program_id,
+        );
 
-        let solana_system_pubkey =
-            solana_sdk::pubkey::Pubkey::new_from_array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]);
-        let accounts = vec![
-            solana_sdk::instruction::AccountMeta::new(blog_metadata_addr, false),
-            solana_sdk::instruction::AccountMeta::new(blog_list_addr, false),
-            solana_sdk::instruction::AccountMeta::new(payer, true),
-            solana_sdk::instruction::AccountMeta::new_readonly(solana_system_pubkey, false),
+        let create_accounts = vec![
+            AccountMeta::new(blog_metadata_addr, false),
+            AccountMeta::new(blog_list_addr, false),
+            // AccountMeta::new(program_id, false),
+            AccountMeta::new(payer, true),
+            AccountMeta::new_readonly(
+                solana_sdk::pubkey!("11111111111111111111111111111111"),
+                false,
+            ),
         ];
 
-        let create_blog_data = CreateBlog {
+        let update_accounts = vec![
+            AccountMeta::new(blog_metadata_addr, false),
+            // AccountMeta::new(blog_list_addr, false),
+            // AccountMeta::new(program_id, false),
+            AccountMeta::new(payer, true),
+            // AccountMeta::new_readonly(
+            //     solana_sdk::pubkey!("11111111111111111111111111111111"),
+            //     false,
+            // ),
+        ];
+
+        let create_blog_data = web3_blog_program::instruction::CreateBlog {
             title: "test1".to_string(),
             author: cid.to_string(),
             cid,
         };
 
+        let update_blog_data = web3_blog_program::instruction::UpdateBlog {
+            new_content: "test 123123 1234".to_string(),
+        };
+
+        let mut data = CREATE_BLOG_DISCRIMINATOR.to_vec();
+        let mut update_data = UPDATE_BLOG_DISCRIMINATOR.to_vec();
+        // let data = create_blog_data.try_to_vec().unwrap();
+        create_blog_data.serialize(&mut data).unwrap();
+        update_blog_data.serialize(&mut update_data).unwrap();
+
         let block_hash = rpc_client.get_latest_blockhash().await?;
 
-        let instruction = solana_sdk::instruction::Instruction::new_with_bincode(
+        let instruction = solana_sdk::instruction::Instruction {
             program_id,
-            &create_blog_data,
-            accounts,
-        );
+            accounts:update_accounts,
+            data:update_data,
+        };
 
         info!("instruction: {:?}", instruction);
 
@@ -96,8 +118,15 @@ pub async fn foo() -> dioxus::Result<(), dioxus::Error> {
         info!("output: {:?}", output);
 
         // let deser_tx_output =
-        //     bincode::deserialize::<solana_sdk::transaction::Transaction>(&output[0]).unwrap();
+        //     bincode::deserialize::<solana_sdk::transaction::VersionedTransaction>(&output[0]).unwrap();
         // info!("deser_tx_output: {:?}", deser_tx_output);
+
+
+        // let sig = rpc_client
+        //     .send_transaction(&deser_tx_output)
+        //     .await?;
+
+        // info!("sig: {:?}", sig);
     }
 
     Ok(())
